@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 from datetime import timedelta
 from decouple import config
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,9 +26,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.alwaysdata.net', 'raketaleshan.alwaysdata.net']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.alwaysdata.net', 'www.raketaleshan.alwaysdata.net']
 
 
 # Application definition
@@ -94,7 +95,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'raketaleshan_garicare',
         'USER': 'raketaleshan',
-        'PASSWORD': 'YOUR_DB_PASSWORD',
+        'PASSWORD': config('DB_PASSWORD'),
         'HOST': 'mysql-raketaleshan.alwaysdata.net',
         'PORT': '3306',
         'OPTIONS': {
@@ -135,10 +136,9 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
-
-STATIC_URL = 'static/'
+# Static files
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -161,14 +161,11 @@ SIMPLE_JWT = {
 }
 
 # CORS Settings
-CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_CREDENTIALS = True
-
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "https://garicare.alwaysdata.net",
+    "https://raketaleshan.alwaysdata.net",
+    "http://raketaleshan.alwaysdata.net",
 ]
+CORS_ALLOW_CREDENTIALS = True
 
 # M-Pesa
 MPESA_ENVIRONMENT = config('MPESA_ENVIRONMENT')
