@@ -90,7 +90,7 @@ WSGI_APPLICATION = 'GariCare.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# ✅ DATABASE CONFIGURATION
+#  DATABASE 
 import os
 
 if os.getenv('DB_ENV') == 'production' or config('DEBUG', default=True) == 'False':
