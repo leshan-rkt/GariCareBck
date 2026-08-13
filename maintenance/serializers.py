@@ -9,5 +9,5 @@ class MaintenanceRecordSerializer(serializers.ModelSerializer):
         model = MaintenanceRecord
         fields = ['id', 'car', 'car_details', 'service_date', 'mileage_at_service',
                   'service_type', 'service_type_display', 'description',
-                  'parts_replaced', 'cost', 'notes']
+                  'parts_replaced', 'cost', 'service_provider', 'notes']
         read_only_fields = ['id']
