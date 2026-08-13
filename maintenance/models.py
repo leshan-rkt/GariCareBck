@@ -6,15 +6,14 @@ from cars.models import Car
 # Create your models here.
 class MaintenanceRecord(models.Model):
     class ServiceType(models.TextChoices):
-       SERVICE_TYPES = [
-            ('ROUTINE', 'Routine Maintenance'),
-            ('REPAIR', 'Repair'),
-            ('OIL_CHANGE', 'Oil Change'),
-            ('TYRES', 'Tyres / Alignment'),
-            ('INSURANCE', 'Insurance'),
-            ('OTHER', 'Other'),
-        ]
-       
+        ROUTINE = 'ROUTINE', 'Routine Service'
+        REPAIR = 'REPAIR', 'Repair'
+        REPLACEMENT = 'REPLACEMENT', 'Part Replacement'
+        OIL_CHANGE = 'OIL_CHANGE', 'oil change'
+        TYRES = 'TYRES / ALIGNMENT', 'tyres / alignment'
+        INSURANCE = 'INSURANCE', 'insurance'
+        OTHER = 'OTHER', 'Other'
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     car = models.ForeignKey(Car, on_delete=models.CASCADE, related_name='maintenance_records')
     service_date = models.DateField()
