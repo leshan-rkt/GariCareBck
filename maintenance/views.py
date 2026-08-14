@@ -5,7 +5,7 @@ from django.db.models import Sum, DecimalField
 from .models import MaintenanceRecord
 from .serializers import MaintenanceRecordSerializer
 
-# Create your views here.
+
 class MaintenanceRecordViewSet(viewsets.ModelViewSet):
     serializer_class = MaintenanceRecordSerializer
     permission_classes = [permissions.IsAuthenticated]

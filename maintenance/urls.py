@@ -1,11 +1,11 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import MaintenanceRecordViewSet, CarTotalCostView
+from . import views
 
 router = DefaultRouter()
-router.register(r'', MaintenanceRecordViewSet, basename='maintenance')
+router.register(r'', views.MaintenanceRecordViewSet, basename='maintenance')
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('cost/<int:car_id>/', CarTotalCostView.as_view(), name='car-total-cost'),
+    path('car/<int:car_id>/total-cost/', views.CarTotalCostView.as_view(), name='car-total-cost'),
 ]

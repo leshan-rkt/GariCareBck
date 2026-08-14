@@ -1,92 +1,97 @@
-from django.shortcuts import render
-from rest_framework import generics, permissions, status
+from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework import status
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.http import JsonResponse
 from django.utils import timezone
 from django_daraja.mpesa.core import MpesaClient
-from .models import MpesaTransaction
-from .serializers import MpesaTransactionSerializer, STKPushRequestSerializer
+from .models import Payment
+from maintenance.models import MaintenanceRecord
 
-# Create your views here.
-class InitiateSTKPushView(generics.CreateAPIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request, *args, **kwargs):
-        serializer = STKPushRequestSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
-
-        phone = data['phone_number']
-        if phone.startswith('0'): phone = '254' + phone[1:]
-        elif phone.startswith('+'): phone = phone[1:]
-
-        amount = int(data['amount'])
-        callback_url = f"{settings.BASE_URL}/api/payments/callback/"
-
-        try:
-            cl = MpesaClient()
-            response = cl.stk_push(phone, amount, data['account_reference'], data['transaction_desc'], callback_url)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        transaction = MpesaTransaction.objects.create(
-            user=request.user,
-            merchant_request_id=response.get('MerchantRequestID'),
-            checkout_request_id=response.get('CheckoutRequestID'),
-            amount=data['amount'],
-            phone_number=phone,
-            account_reference=data['account_reference'],
-            transaction_desc=data.get('transaction_desc'),
-            car_id=data.get('car_id'),
-            maintenance_record_id=data.get('maintenance_record_id')
-        )
-
-        return Response({
-            "success": True,
-            "message": "Payment prompt sent — enter PIN on your phone",
-            "transaction_id": transaction.id
-        }, status=status.HTTP_201_CREATED)
-
-
-@method_decorator(csrf_exempt, name='dispatch')
-class MpesaCallbackView(generics.GenericAPIView):
-    permission_classes = []
-
+class InitiateSTKPushView(APIView):
     def post(self, request):
         try:
-            stk_result = request.data.get('Body', {}).get('stkCallback', {})
-            checkout_req_id = stk_result.get('CheckoutRequestID')
-            result_code = stk_result.get('ResultCode')
-            result_desc = stk_result.get('ResultDesc')
+            # Get data from request
+            maintenance_id = request.data.get('maintenance_id')
+            phone = request.data.get('phone_number')
+            amount = request.data.get('amount')
+            account_reference = request.data.get('account_reference', 'Payment')
 
-            transaction = MpesaTransaction.objects.get(checkout_request_id=checkout_req_id)
-            transaction.result_code = result_code
-            transaction.result_desc = result_desc
+            # Clean phone number
+            phone = phone.replace('+', '').replace(' ', '')
+            if phone.startswith('0'):
+                phone = '254' + phone[1:]
 
-            if result_code == 0:
-                items = stk_result.get('CallbackMetadata', {}).get('Item', [])
-                meta = {item['Name']: item.get('Value') for item in items}
-                transaction.mpesa_receipt_number = meta.get('MpesaReceiptNumber')
-                transaction.transaction_date = timezone.make_aware(
-                    timezone.datetime.strptime(str(meta.get('TransactionDate')), "%Y%m%d%H%M%S")
-                )
-                transaction.status = MpesaTransaction.Status.COMPLETED
-            else:
-                transaction.status = MpesaTransaction.Status.FAILED
+            # Initialize M-Pesa client
+            cl = MpesaClient()
 
-            transaction.save()
-            return JsonResponse({"ResultCode": 0, "ResultDesc": "Accepted"})
+            # Call STK Push
+            response = cl.stk_push(
+                phone_number=phone,
+                amount=int(amount),
+                account_reference=account_reference,
+                transaction_desc=f"Service Payment #{maintenance_id}",
+                callback_url=settings.MPESA_CALLBACK_URL,
+            )
+            merchant_request_id = response.MerchantRequestID
+            checkout_request_id = response.CheckoutRequestID
+            message = response.ResponseDescription
+
+            Payment.objects.create(
+                maintenance_record_id=maintenance_id,
+                payer_phone=phone,
+                amount=amount,
+                merchant_request_id=merchant_request_id,
+                checkout_request_id=checkout_request_id,
+                status='PENDING'
+            )
+
+            return Response({
+                'success': True,
+                'CheckoutRequestID': checkout_request_id,
+                'MerchantRequestID': merchant_request_id,
+                'message': message
+            })
 
         except Exception as e:
-            return JsonResponse({"ResultCode": 1, "ResultDesc": str(e)}, status=400)
+            import traceback
+            print("PAYMENT ERROR:", str(e))
+            print(traceback.format_exc())
+            return Response({
+                "success": False,
+                "error": str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)
 
+# M-Pesa Callback View
+class MpesaCallbackView(APIView):
+    permission_classes = []  # Allow external calls from Safaricom
 
-class UserTransactionsView(generics.ListAPIView):
-    serializer_class = MpesaTransactionSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    def post(self, request):
+        data = request.data
+        checkout_id = data.get('CheckoutRequestID')
+        result_code = data.get('ResultCode')
+        result_desc = data.get('ResultDesc')
 
-    def get_queryset(self):
-        return MpesaTransaction.objects.filter(user=self.request.user)
+        # Update Payment record in database
+        Payment.objects.filter(checkout_request_id=checkout_id).update(
+            status='COMPLETED' if result_code == '0' else 'FAILED',
+            result_code=result_code,
+            result_desc=result_desc,
+            mpesa_receipt=data.get('MpesaReceiptNumber', '')
+        )
+        return Response({"status": "ok"})
+    
+# Check Payment Status View
+class CheckPaymentStatusView(APIView):
+    def get(self, request, checkout_id):
+        try:
+            payment = Payment.objects.get(checkout_request_id=checkout_id)
+            return Response({
+                "status": payment.status,
+                "receipt": payment.mpesa_receipt,
+                "result_desc": payment.result_desc
+            })
+        except Payment.DoesNotExist:
+            return Response({"status": "PENDING"}, status=404)

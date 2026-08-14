@@ -1,17 +1,15 @@
 from django.db import models
-from django.db import models
 from django.conf import settings
 from cars.models import Car
 
-# Create your models here.
 class MaintenanceRecord(models.Model):
     class ServiceType(models.TextChoices):
         ROUTINE = 'ROUTINE', 'Routine Service'
         REPAIR = 'REPAIR', 'Repair'
         REPLACEMENT = 'REPLACEMENT', 'Part Replacement'
-        OIL_CHANGE = 'OIL_CHANGE', 'oil change'
-        TYRES = 'TYRES / ALIGNMENT', 'tyres / alignment'
-        INSURANCE = 'INSURANCE', 'insurance'
+        OIL_CHANGE = 'OIL_CHANGE', 'Oil Change'
+        TYRES = 'TYRES / ALIGNMENT', 'Tyres / Alignment'
+        INSURANCE = 'INSURANCE', 'Insurance'
         OTHER = 'OTHER', 'Other'
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -25,6 +23,21 @@ class MaintenanceRecord(models.Model):
     notes = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     service_provider = models.CharField(max_length=255, blank=True, null=True)
+    
+    mechanic_phone = models.CharField(
+        "Mechanic/Garage Phone Number", 
+        max_length=20, 
+        blank=True, 
+        null=True,
+        help_text="Phone number of the person or garage to receive payment"
+    )
+    mechanic_paybill = models.CharField(
+        "Paybill Number", 
+        max_length=50, 
+        blank=True, 
+        null=True,
+        help_text="Enter Paybill/Till number if paying directly to their business"
+    )
 
     class Meta:
         ordering = ['-service_date']

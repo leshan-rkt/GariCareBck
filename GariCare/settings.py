@@ -55,6 +55,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -62,8 +63,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
 ]
 
 ROOT_URLCONF = 'GariCare.urls'
@@ -172,11 +171,14 @@ SIMPLE_JWT = {
 }
 
 # CORS Settings
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = [
     "https://raketaleshan.alwaysdata.net",
     "http://raketaleshan.alwaysdata.net",
     "http://localhost:5173",
+    "http://localhost:5174",
     "http://127.0.0.1:5173",
+    "http://127.0.0.1:5174",
 ]
 CORS_ALLOW_CREDENTIALS = True
 
@@ -189,3 +191,4 @@ MPESA_EXPRESS_SHORTCODE = config('MPESA_EXPRESS_SHORTCODE')
 MPESA_SHORTCODE_TYPE = config('MPESA_SHORTCODE_TYPE')
 MPESA_PASSKEY = config('MPESA_PASSKEY')
 BASE_URL = config('BASE_URL', default='http://127.0.0.1:8000')
+MPESA_CALLBACK_URL = 'http://localhost:8000/api/payments/callback/'
