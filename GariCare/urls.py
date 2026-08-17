@@ -16,10 +16,18 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.http import HttpResponse
+from django.shortcuts import render
+
+# Landing Page View ✨
+def landing_page(request):
+    return render(request, 'landing.html')
 
 urlpatterns = [
+    path('garicare/', landing_page, name='landing'),
     path('garicare/admin/', admin.site.urls),
     path('garicare/api/users/', include('users.urls')),
     path('garicare/api/cars/', include('cars.urls')),
     path('garicare/api/maintenance/', include('maintenance.urls')),
+    path('garicare/api/payments/', include('payments.urls')),
 ]
