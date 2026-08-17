@@ -8,9 +8,11 @@ https://docs.djangoproject.com/en/5.2/howto/deployment/wsgi/
 """
 
 import os
+import sys
+
 
 from django.core.wsgi import get_wsgi_application
-
+sys.path.append("/home/raketaleshan/www/GariCareBck")
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'GariCare.settings')
 
 application = get_wsgi_application()
