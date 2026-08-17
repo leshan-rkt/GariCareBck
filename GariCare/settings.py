@@ -28,7 +28,8 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.alwaysdata.net', 'www.raketaleshan.alwaysdata.net']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.alwaysdata.net', 'www.raketaleshan.alwaysdata.net','localhost:5173/',
+]
 
 
 # Application definition
