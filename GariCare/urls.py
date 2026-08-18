@@ -19,12 +19,12 @@ from django.urls import path, include
 from django.http import HttpResponse
 from django.shortcuts import render
 
-# Landing Page View ✨
-def landing_page(request):
+# Landing Page View 
+def LandingPage(request):
     return render(request, 'landing.html')
 
 urlpatterns = [
-    path('garicare/', landing_page, name='landing'),
+    path('garicare/', api_root),
     path('garicare/admin/', admin.site.urls),
     path('garicare/api/users/', include('users.urls')),
     path('garicare/api/cars/', include('cars.urls')),
