@@ -17,11 +17,15 @@ class RegisterView(generics.CreateAPIView):
 
 # ✅ YOUR MISSING LOGIN VIEW — NOW ADDED!
 class LoginView(APIView):
+    print("hey")
     permission_classes = []  # Allow anyone to login
 
     def post(self, request):
         username = request.data.get('username')
         password = request.data.get('password')
+
+        print("Request data:", request.data)
+
 
         # ✅ THIS IS THE MAGIC LINE — Django handles password hashing!
         user = authenticate(username=username, password=password)

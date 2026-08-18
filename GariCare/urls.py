@@ -24,7 +24,7 @@ def LandingPage(request):
     return render(request, 'landing.html')
 
 urlpatterns = [
-    path('garicare/', api_root),
+    # path('garicare/', ),
     path('garicare/admin/', admin.site.urls),
     path('garicare/api/users/', include('users.urls')),
     path('garicare/api/cars/', include('cars.urls')),
