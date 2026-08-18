@@ -34,7 +34,7 @@ ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.alwaysdata.net', 'www.raketaleshan.
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://maziwa-sync-react-class.vercel.app"
+    "https://gari-care-react-x4d8.vercel.app"
 ]
 
 
